@@ -8,6 +8,7 @@ public class Notification : Entity
     public NotificationType Type { get; init; }
     public Guid? SourceId { get; init; }
     public string? Data { get; init; }
+    public NotificationStatus Status { get; init; }
     public bool IsRead { get; init; } = false;
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 }

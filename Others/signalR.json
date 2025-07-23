@@ -5,6 +5,7 @@
 
 {
   "type": 1,
-  "target": "Ping",
+  "invocationId": "1",
+  "target": "FunctionName",
   "arguments": []
 }

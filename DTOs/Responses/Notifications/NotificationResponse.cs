@@ -4,6 +4,7 @@ namespace Chat_API.DTOs.Responses.Notifications;
 
 public class NotificationResponse
 {
+    public Guid Id { get; init; }
     public NotificationType Type { get; init; }
     public Guid? SourceId { get; init; }
     public DateTime CreatedAt { get; init; }

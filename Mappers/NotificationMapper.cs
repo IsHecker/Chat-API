@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Chat_API.DTOs.Responses.Notifications;
 using Chat_API.Models;
 
@@ -9,10 +10,16 @@ public static class NotificationMapper
     {
         return new NotificationResponse
         {
+            Id = notification.Id,
             Type = notification.Type,
             SourceId = notification.SourceId,
-            Data = data,
+            Data = data is string str ? JsonSerializer.Deserialize<object>(str) : data,
             CreatedAt = notification.CreatedAt
         };
+    }
+
+    public static IEnumerable<NotificationResponse> ToResponse(this IEnumerable<Notification> notifications)
+    {
+        return notifications.Select(n => n.ToResponse(n.Data));
     }
 }

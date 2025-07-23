@@ -8,14 +8,19 @@ namespace Chat_API.Controllers;
 [ApiController]
 public class ApiController : ControllerBase
 {
+    private Guid? _userId = null;
     protected Guid UserId
     {
         get
         {
+            if (_userId is not null)
+                return _userId.Value;
+
             var id = User.FindFirst(JwtRegisteredClaimNames.Sub);
             if (id is null || !Guid.TryParse(id.Value, out Guid userId) || userId == Guid.Empty)
                 throw new InvalidOperationException("User ID not found or is empty.");
 
+            _userId = userId;
             SharedData.UserId = userId;
             return userId;
         }

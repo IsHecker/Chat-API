@@ -1,6 +1,5 @@
 using Chat_API.Data.Interfaces;
 using Chat_API.Data.Repositories;
-using Chat_API.DTOs.Responses.FriendManagement;
 using Chat_API.Models;
 using Chat_API.Models.Enums;
 using Chat_API.Results;
@@ -39,20 +38,22 @@ public class FriendRequestService
         if (user is null)
             throw new InvalidOperationException("User ID not found.");
 
-        // if (await AlreadyFriends(senderId, receiverId))
-        //     return Error.Validation(description: "Already friends.");
+        if (await _friendshipRepository.IsFriendsAsync(userId, receiverId))
+            return Error.Validation(description: "Already friends.");
 
-        // if (await RequestExists(senderId, receiverId))
-        //     return Error.Validation(description: "Request already sent.");
+        if (await _friendRequestRepository.RequestExistsAsync(userId, receiverId))
+            return Error.Validation(description: "Request already sent.");
 
-        // if (await RequestExists(receiverId, senderId))
-        // {
-        //     await AcceptMutualRequest(receiverId, senderId);
-        //     return Result.Success;
-        // }
+        var friendRequestId = await _friendRequestRepository.GetFriendRequestId(receiverId, userId);
+        if (friendRequestId is not null)
+        {
+            var acceptResult = await RespondToRequestAsync(friendRequestId.Value, userId, FriendRequestStatus.Accepted);
 
-        // if (await IsBlocked(senderId, receiverId))
-        //     return Error.Validation(description: "Cannot send request to this user.");
+            if (acceptResult.IsError)
+                return acceptResult.Errors;
+
+            return Result.Success;
+        }
 
         var friendRequest = new FriendRequest
         {
@@ -63,7 +64,6 @@ public class FriendRequestService
 
         await _friendRequestRepository.AddAsync(friendRequest);
 
-        // Push notification here
         await _notificationService.SendAsync(
             receiverId,
             NotificationType.FriendRequest,
@@ -76,11 +76,16 @@ public class FriendRequestService
                 user.ProfilePictureUrl
             });
 
+        await _unitOfWork.SaveChangesAsync();
+
         return Result.Success;
     }
 
-    public async Task<Result> AcceptRequest(Guid friendRequestId, Guid userId)
+    public async Task<Result> RespondToRequestAsync(Guid friendRequestId, Guid userId, FriendRequestStatus requestStatus)
     {
+        if (requestStatus == FriendRequestStatus.Pending)
+            return Error.Validation(description: "Can't respond to a Friend Request with 'Pending'.");
+
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user is null)
             throw new InvalidOperationException("User ID not found.");
@@ -92,7 +97,7 @@ public class FriendRequestService
         if (friendRequest.ReceiverId != userId)
             return Error.Validation(description: "Not authorized.");
 
-        friendRequest.SetStatus(FriendRequestStatus.Accepted);
+        friendRequest.SetStatus(requestStatus);
 
         var friendship = new Friendship
         {
@@ -110,15 +115,19 @@ public class FriendRequestService
         await _friendshipRepository.AddAsync(friendship);
         await _individualConversationRepository.AddAsync(individualConversation);
 
-        // Push notification here
         await _notificationService.SendAsync(
             receiverId: friendRequest.SenderId,
-            NotificationType.FriendRequestAccepted,
+            Enum.Parse<NotificationType>($"{nameof(FriendRequest)}{requestStatus}"),
             friendRequest.Id,
-            new { UserId = userId, Username = user.UserName, user.ProfilePictureUrl });
+            new
+            {
+                UserId = userId,
+                Username = user.UserName,
+                user.ProfilePictureUrl
+            });
+
+        await _unitOfWork.SaveChangesAsync();
 
         return Result.Success;
     }
-
-    // Additional methods: DeclineRequest, CancelRequest, Unfriend, etc.
 }

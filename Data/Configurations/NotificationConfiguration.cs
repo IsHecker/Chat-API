@@ -12,5 +12,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .WithMany()
             .HasForeignKey(n => n.ReceiverId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Property(n => n.Status).HasConversion<string>();
     }
 }

@@ -8,6 +8,7 @@ public static class ApiEndpoints
     private const string FriendRequestsBase = $"{ApiBase}/friend-requests";
     private const string ConversationsBase = $"{ApiBase}/conversations";
     private const string GroupsBase = $"{ApiBase}/groups";
+    private const string NotificationsBase = $"{ApiBase}/notifications";
 
     public static class Auth
     {
@@ -24,7 +25,7 @@ public static class ApiEndpoints
     public static class FriendRequests
     {
         public const string SendRequest = FriendRequestsBase;
-        public const string FriendRequestAcceptance = $"{FriendRequestsBase}/{{requestId}}";
+        public const string RespondToFriendRequest = $"{FriendRequestsBase}/{{requestId}}";
     }
 
     public static class Conversations
@@ -41,5 +42,10 @@ public static class ApiEndpoints
         public const string RemoveMemberFromGroup = $"{GroupsBase}/{{conversationId}}/members/{{memberId}}";
         public const string Create = GroupsBase;
         public const string UpdateGroupDetails = $"{GroupsBase}/{{conversationId}}";
+    }
+
+    public static class Notifications
+    {
+        public const string ListNotifications = NotificationsBase;
     }
 }

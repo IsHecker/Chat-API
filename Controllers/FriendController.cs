@@ -1,4 +1,6 @@
 using Chat_API.DTOs.Requests.FriendManagement;
+using Chat_API.Models.Enums;
+using Chat_API.Results;
 using Chat_API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,10 +25,13 @@ public class FriendController : ApiController
     }
 
     [Authorize]
-    [HttpPatch(ApiEndpoints.FriendRequests.FriendRequestAcceptance)]
-    public async Task<IActionResult> FriendRequestAcceptance(Guid requestId, [FromBody] FriendRequestAcceptanceRequest request)
+    [HttpPatch(ApiEndpoints.FriendRequests.RespondToFriendRequest)]
+    public async Task<IActionResult> RespondToFriendRequest(Guid requestId, [FromBody] RespondToFriendRequestRequest request)
     {
-        var acceptanceResult = await _friendRequestService.AcceptRequest(requestId, UserId);
+        if (!Enum.TryParse<FriendRequestStatus>(request.Status, true, out var status))
+            return Problem(Error.Validation(description: "Invalid Friend Request Status."));
+
+        var acceptanceResult = await _friendRequestService.RespondToRequestAsync(requestId, UserId, status);
         return acceptanceResult.Match(Ok, Problem);
     }
 }

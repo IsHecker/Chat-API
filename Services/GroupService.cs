@@ -63,7 +63,7 @@ public class GroupService
 
 
         var response = groupConversation.ToResponse();
-        response.Members = (await ListGroupMembersAsync(conversationId, new Pagination())).Value;
+        response.Members = (await ListGroupMembersAsync(conversationId, Pagination.Default)).Value;
 
         return response;
     }
