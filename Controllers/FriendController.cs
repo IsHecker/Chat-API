@@ -26,7 +26,7 @@ public class FriendController : ApiController
     [HttpPatch(ApiEndpoints.FriendRequests.FriendRequestAcceptance)]
     public async Task<IActionResult> FriendRequestAcceptance(Guid requestId, [FromBody] FriendRequestAcceptanceRequest request)
     {
-        var acceptanceResult = await _friendRequestService.AcceptRequest(requestId, UserId, request.ReceiverId);
+        var acceptanceResult = await _friendRequestService.AcceptRequest(requestId, UserId);
         return acceptanceResult.Match(Ok, Problem);
     }
 }

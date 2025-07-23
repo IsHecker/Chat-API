@@ -5,15 +5,13 @@ namespace Chat_API.Mappers;
 
 public static class NotificationMapper
 {
-    public static NotificationResponse ToResponse(this Notification notification)
+    public static NotificationResponse ToResponse(this Notification notification, object? data)
     {
         return new NotificationResponse
         {
-            SenderId = notification.SenderId,
-            ReceiverId = notification.ReceiverId,
             Type = notification.Type,
             SourceId = notification.SourceId,
-            Data = notification.Data,
+            Data = data,
             CreatedAt = notification.CreatedAt
         };
     }

@@ -4,6 +4,7 @@ using Chat_API.DTOs.Responses.FriendManagement;
 using Chat_API.Models;
 using Chat_API.Models.Enums;
 using Chat_API.Results;
+using Microsoft.AspNetCore.Identity;
 
 namespace Chat_API.Services;
 
@@ -11,23 +12,33 @@ public class FriendRequestService
 {
     private readonly FriendRequestRepository _friendRequestRepository;
     private readonly FriendshipRepository _friendshipRepository;
+    private readonly IndividualConversationRepository _individualConversationRepository;
     private readonly NotificationService _notificationService;
+    private readonly UserManager<User> _userManager;
     private readonly IUnitOfWork _unitOfWork;
 
     public FriendRequestService(
         FriendRequestRepository requestRepository,
         NotificationService notificationService,
         FriendshipRepository friendshipRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        UserManager<User> userManager,
+        IndividualConversationRepository individualConversationRepository)
     {
         _friendRequestRepository = requestRepository;
         _notificationService = notificationService;
         _friendshipRepository = friendshipRepository;
         _unitOfWork = unitOfWork;
+        _userManager = userManager;
+        _individualConversationRepository = individualConversationRepository;
     }
 
-    public async Task<Result<SendFriendRequestResponse>> SendRequestAsync(Guid userId, Guid receiverId)
+    public async Task<Result> SendRequestAsync(Guid userId, Guid receiverId)
     {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            throw new InvalidOperationException("User ID not found.");
+
         // if (await AlreadyFriends(senderId, receiverId))
         //     return Error.Validation(description: "Already friends.");
 
@@ -50,20 +61,31 @@ public class FriendRequestService
             Status = FriendRequestStatus.Pending
         };
 
+        await _friendRequestRepository.AddAsync(friendRequest);
+
         // Push notification here
         await _notificationService.SendAsync(
-            friendRequest,
-            userId,
             receiverId,
             NotificationType.FriendRequest,
-            new { RequestId = friendRequest.Id });
+            friendRequest.Id,
+            new
+            {
+                FriendRequestId = friendRequest.Id,
+                UserId = userId,
+                Username = user.UserName,
+                user.ProfilePictureUrl
+            });
 
-        return new SendFriendRequestResponse { RequestId = friendRequest.Id };
+        return Result.Success;
     }
 
-    public async Task<Result> AcceptRequest(Guid requestId, Guid userId, Guid receiverId)
+    public async Task<Result> AcceptRequest(Guid friendRequestId, Guid userId)
     {
-        var friendRequest = await _friendRequestRepository.GetByIdAsync(requestId);
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+            throw new InvalidOperationException("User ID not found.");
+
+        var friendRequest = await _friendRequestRepository.GetByIdAsync(friendRequestId);
         if (friendRequest == null || friendRequest.Status != FriendRequestStatus.Pending)
             return Error.Validation(description: "Invalid Friend request.");
 
@@ -74,20 +96,26 @@ public class FriendRequestService
 
         var friendship = new Friendship
         {
-            User1Id = friendRequest.SenderId,
-            User2Id = friendRequest.ReceiverId
+            User1Id = userId,
+            User2Id = friendRequest.SenderId
         };
 
+        var individualConversation = new IndividualConversation
+        {
+            User1Id = userId,
+            User2Id = friendRequest.SenderId
+        };
+
+        await _friendRequestRepository.UpdateAsync(friendRequest);
         await _friendshipRepository.AddAsync(friendship);
-        await _friendRequestRepository.DeleteAsync(friendRequest);
-        await _unitOfWork.SaveChangesAsync();
+        await _individualConversationRepository.AddAsync(individualConversation);
 
         // Push notification here
         await _notificationService.SendAsync(
-            friendRequest,
-            userId,
-            receiverId,
-            NotificationType.FriendRequestAccepted);
+            receiverId: friendRequest.SenderId,
+            NotificationType.FriendRequestAccepted,
+            friendRequest.Id,
+            new { UserId = userId, Username = user.UserName, user.ProfilePictureUrl });
 
         return Result.Success;
     }

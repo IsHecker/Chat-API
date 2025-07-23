@@ -4,6 +4,7 @@ using Chat_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Chat_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250722163333_init")]
+    partial class init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -113,40 +116,6 @@ namespace Chat_API.Migrations
                     b.HasIndex("User2Id");
 
                     b.ToTable("IndividualConversations");
-                });
-
-            modelBuilder.Entity("Chat_API.Models.Joins.GroupAdmin", b =>
-                {
-                    b.Property<Guid>("AdminsId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("AdminsId");
-
-                    b.Property<Guid>("GroupConversationId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("GroupConversationId");
-
-                    b.HasKey("AdminsId", "GroupConversationId");
-
-                    b.HasIndex("GroupConversationId");
-
-                    b.ToTable("GroupAdmins");
-                });
-
-            modelBuilder.Entity("Chat_API.Models.Joins.GroupMember", b =>
-                {
-                    b.Property<Guid>("GroupConversationId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("GroupConversationId");
-
-                    b.Property<Guid>("MembersId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("MembersId");
-
-                    b.HasKey("GroupConversationId", "MembersId");
-
-                    b.HasIndex("MembersId");
-
-                    b.ToTable("GroupMembers");
                 });
 
             modelBuilder.Entity("Chat_API.Models.Message", b =>
@@ -279,6 +248,36 @@ namespace Chat_API.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("GroupConversationUser", b =>
+                {
+                    b.Property<Guid>("GroupConversationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("MembersId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("GroupConversationId", "MembersId");
+
+                    b.HasIndex("MembersId");
+
+                    b.ToTable("GroupMembers", (string)null);
+                });
+
+            modelBuilder.Entity("GroupConversationUser1", b =>
+                {
+                    b.Property<Guid>("AdminsId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("GroupConversation1Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("AdminsId", "GroupConversation1Id");
+
+                    b.HasIndex("GroupConversation1Id");
+
+                    b.ToTable("GroupAdmins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -457,36 +456,6 @@ namespace Chat_API.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Chat_API.Models.Joins.GroupAdmin", b =>
-                {
-                    b.HasOne("Chat_API.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("AdminsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Chat_API.Models.GroupConversation", null)
-                        .WithMany()
-                        .HasForeignKey("GroupConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Chat_API.Models.Joins.GroupMember", b =>
-                {
-                    b.HasOne("Chat_API.Models.GroupConversation", null)
-                        .WithMany()
-                        .HasForeignKey("GroupConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Chat_API.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("MembersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Chat_API.Models.Message", b =>
                 {
                     b.HasOne("Chat_API.Models.User", null)
@@ -502,6 +471,36 @@ namespace Chat_API.Migrations
                         .WithMany()
                         .HasForeignKey("ReceiverId")
                         .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GroupConversationUser", b =>
+                {
+                    b.HasOne("Chat_API.Models.GroupConversation", null)
+                        .WithMany()
+                        .HasForeignKey("GroupConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Chat_API.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("MembersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GroupConversationUser1", b =>
+                {
+                    b.HasOne("Chat_API.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("AdminsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Chat_API.Models.GroupConversation", null)
+                        .WithMany()
+                        .HasForeignKey("GroupConversation1Id")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

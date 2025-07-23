@@ -16,7 +16,8 @@ public class ApiController : ControllerBase
             if (id is null || !Guid.TryParse(id.Value, out Guid userId) || userId == Guid.Empty)
                 throw new InvalidOperationException("User ID not found or is empty.");
 
-            return Guid.Parse(id.Value);
+            SharedData.UserId = userId;
+            return userId;
         }
     }
 

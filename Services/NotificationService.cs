@@ -21,25 +21,18 @@ public class NotificationService
         _hubContext = hubContext;
     }
 
-    public async Task SendAsync<TEntity>(
-        TEntity entityToSend,
-        Guid senderId,
+    public async Task SendAsync(
         Guid receiverId,
         NotificationType type,
+        Guid? entityId = null,
         object? data = null
-        ) where TEntity : notnull
+        )
     {
-        if (entityToSend is null)
-            throw new ArgumentNullException(paramName: nameof(entityToSend), message: "can't send a null entity.");
-
-        await _context.AddAsync(entityToSend);
-
         var notification = new Notification
         {
-            SenderId = senderId,
             ReceiverId = receiverId,
             Type = type,
-            SourceId = (entityToSend as Entity)!.Id,
+            SourceId = entityId,
             Data = data != null ? JsonSerializer.Serialize(data) : null,
             IsRead = false
         };
@@ -47,6 +40,6 @@ public class NotificationService
         await _context.AddAsync(notification);
         await _context.SaveChangesAsync();
 
-        await _hubContext.Clients.User(receiverId.ToString()).ReceiveNotification(notification.ToResponse());
+        await _hubContext.Clients.User(receiverId.ToString()).ReceiveNotification(notification.ToResponse(data));
     }
 }

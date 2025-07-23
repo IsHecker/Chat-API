@@ -4,6 +4,7 @@ using Chat_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Chat_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250722163722_groupUpdate")]
+    partial class groupUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,24 +118,24 @@ namespace Chat_API.Migrations
                     b.ToTable("IndividualConversations");
                 });
 
-            modelBuilder.Entity("Chat_API.Models.Joins.GroupAdmin", b =>
+            modelBuilder.Entity("Chat_API.Models.Joins.GroupAdmins", b =>
                 {
                     b.Property<Guid>("AdminsId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("AdminsId");
 
-                    b.Property<Guid>("GroupConversationId")
+                    b.Property<Guid>("GroupConversation1Id")
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("GroupConversationId");
+                        .HasColumnName("GroupConversation1Id");
 
-                    b.HasKey("AdminsId", "GroupConversationId");
+                    b.HasKey("AdminsId", "GroupConversation1Id");
 
-                    b.HasIndex("GroupConversationId");
+                    b.HasIndex("GroupConversation1Id");
 
-                    b.ToTable("GroupAdmins");
+                    b.ToTable("GroupAdmins", (string)null);
                 });
 
-            modelBuilder.Entity("Chat_API.Models.Joins.GroupMember", b =>
+            modelBuilder.Entity("Chat_API.Models.Joins.GroupMembers", b =>
                 {
                     b.Property<Guid>("GroupConversationId")
                         .HasColumnType("uniqueidentifier")
@@ -146,7 +149,7 @@ namespace Chat_API.Migrations
 
                     b.HasIndex("MembersId");
 
-                    b.ToTable("GroupMembers");
+                    b.ToTable("GroupMembers", (string)null);
                 });
 
             modelBuilder.Entity("Chat_API.Models.Message", b =>
@@ -457,7 +460,7 @@ namespace Chat_API.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Chat_API.Models.Joins.GroupAdmin", b =>
+            modelBuilder.Entity("Chat_API.Models.Joins.GroupAdmins", b =>
                 {
                     b.HasOne("Chat_API.Models.User", null)
                         .WithMany()
@@ -467,12 +470,12 @@ namespace Chat_API.Migrations
 
                     b.HasOne("Chat_API.Models.GroupConversation", null)
                         .WithMany()
-                        .HasForeignKey("GroupConversationId")
+                        .HasForeignKey("GroupConversation1Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Chat_API.Models.Joins.GroupMember", b =>
+            modelBuilder.Entity("Chat_API.Models.Joins.GroupMembers", b =>
                 {
                     b.HasOne("Chat_API.Models.GroupConversation", null)
                         .WithMany()

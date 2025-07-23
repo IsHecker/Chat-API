@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Chat_API.Data;
 using Chat_API.Data.Interfaces;
 using Chat_API.Data.Repositories;
+using Chat_API.Filters;
 using Chat_API.Hubs;
 using Chat_API.Hubs.Configs;
 using Chat_API.Models;
@@ -60,8 +61,8 @@ internal class Program
                         ValidateAudience = true,
                         ValidateIssuer = true,
                         ValidateIssuerSigningKey = true,
-                        RequireExpirationTime = true,
-                        ValidateLifetime = true,
+                        RequireExpirationTime = false,
+                        ValidateLifetime = false,
                         ValidAudience = builder.Configuration["Jwt:Audience"],
                         ValidIssuer = builder.Configuration["Jwt:Issuer"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"]!))
@@ -91,18 +92,23 @@ internal class Program
             builder.Services.Configure<JsonOptions>(opts =>
                 opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 
-
+            builder.Services.AddScoped<AdminAuthorizationFilter>();
 
             builder.Services.AddSingleton<TokenGeneratorService>();
             builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 
             builder.Services.AddScoped<FriendRequestRepository>();
             builder.Services.AddScoped<FriendshipRepository>();
+            builder.Services.AddScoped<IndividualConversationRepository>();
+            builder.Services.AddScoped<GroupConversationRepository>();
+            builder.Services.AddScoped<MessageRepository>();
 
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<UserService>();
             builder.Services.AddScoped<FriendRequestService>();
             builder.Services.AddScoped<NotificationService>();
+            builder.Services.AddScoped<MessageService>();
+            builder.Services.AddScoped<GroupService>();
             builder.Services.AddScoped<IUnitOfWork>(p => p.GetRequiredService<ApplicationDbContext>());
         }
 

@@ -22,7 +22,7 @@ public class UserService
         if (userProfile is null)
             return Error.NotFound(description: "This Profile is not found.");
 
-        return userProfile.ToResponse();
+        return userProfile.ToProfileResponse();
     }
 
     public async Task<Result> UpdateProfileAsync(Guid userId, UpdateProfileRequest updatedProfile)
