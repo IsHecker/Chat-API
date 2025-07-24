@@ -22,4 +22,9 @@ public class IndividualConversationRepository : EntityRepository<IndividualConve
                 .OrderBy(ic => ic.LastActivityAt)
                 .Paginate(pagination));
     }
+    public async Task UpdateLastActivityAsync(Guid conversationId)
+    {
+        await Query.Where(gc => gc.Id == conversationId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.LastActivityAt, DateTime.UtcNow));
+    }
 }

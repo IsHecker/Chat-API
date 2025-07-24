@@ -1,14 +1,17 @@
 using Chat_API.DTOs.Requests.Common;
 using Chat_API.Models;
 using Chat_API.Models.Joins;
+using Chat_API.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Chat_API.Data.Repositories;
 
 public class GroupConversationRepository : EntityRepository<GroupConversation, GroupConversationRepository>
 {
-    public GroupConversationRepository(ApplicationDbContext context) : base(context)
+    private readonly OnlineUserStore _onlineUserStore;
+    public GroupConversationRepository(ApplicationDbContext context, OnlineUserStore onlineUserStore) : base(context)
     {
+        _onlineUserStore = onlineUserStore;
     }
 
     public async Task<IEnumerable<GroupConversation>> GetAllByUserIdAsync(Guid userId, Pagination pagination)
@@ -24,6 +27,14 @@ public class GroupConversationRepository : EntityRepository<GroupConversation, G
         return (await Query.Include(grp => grp.Members)
             .Paginate(pagination)
             .FirstOrDefaultAsync(gc => gc.Id == conversationId))?.Members;
+    }
+
+    public async Task<IEnumerable<Guid>> ListGroupMemberIdsAsync(Guid conversationId)
+    {
+        return await Context.GroupMembers
+            .Where(gm => gm.GroupConversationId == conversationId && _onlineUserStore.IsUserOnline(gm.MembersId))
+            .Select(gm => gm.MembersId)
+            .ToListAsync();
     }
 
     public Task<IEnumerable<Guid>> ListGroupAdminIdsAsync(Guid conversationId)
@@ -104,5 +115,11 @@ public class GroupConversationRepository : EntityRepository<GroupConversation, G
                 .SetProperty(a => a.GroupPictureUrl,
                      a => groupPictureUrl ?? a.GroupPictureUrl)
         );
+    }
+
+    public async Task UpdateLastActivityAsync(Guid conversationId)
+    {
+        await Query.Where(gc => gc.Id == conversationId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.LastActivityAt, DateTime.UtcNow));
     }
 }

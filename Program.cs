@@ -77,7 +77,7 @@ internal class Program
 
                             // Check if the request is for your SignalR hub and the token exists in the query
                             var path = context.HttpContext.Request.Path;
-                            if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/notifications"))) // <-- Crucial line
+                            if (!string.IsNullOrEmpty(accessToken)) // <-- Crucial line
                             {
                                 context.Token = accessToken; // Set the token for authentication to process
                             }
@@ -96,6 +96,7 @@ internal class Program
 
             builder.Services.AddSingleton<TokenGeneratorService>();
             builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+            builder.Services.AddSingleton<OnlineUserStore>();
 
             builder.Services.AddScoped<FriendRequestRepository>();
             builder.Services.AddScoped<FriendshipRepository>();
@@ -109,6 +110,7 @@ internal class Program
             builder.Services.AddScoped<NotificationService>();
             builder.Services.AddScoped<MessageService>();
             builder.Services.AddScoped<GroupService>();
+            builder.Services.AddScoped<ConversationService>();
             builder.Services.AddScoped<IUnitOfWork>(p => p.GetRequiredService<ApplicationDbContext>());
         }
 
@@ -117,7 +119,8 @@ internal class Program
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapHub<NotificationHub>("notifications");
+            app.MapHub<NotificationHub>("/notifications");
+            app.MapHub<ChatHub>("/chats");
 
             app.MapControllers();
         }
