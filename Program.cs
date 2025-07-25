@@ -110,14 +110,27 @@ internal class Program
             builder.Services.AddScoped<NotificationService>();
             builder.Services.AddScoped<MessageService>();
             builder.Services.AddScoped<GroupService>();
+            builder.Services.AddScoped<IndividualConversationService>();
             builder.Services.AddScoped<ConversationService>();
             builder.Services.AddScoped<IUnitOfWork>(p => p.GetRequiredService<ApplicationDbContext>());
+
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+            });
         }
 
         var app = builder.Build();
         {
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseCors("AllowAll");
 
             app.MapHub<NotificationHub>("/notifications");
             app.MapHub<ChatHub>("/chats");

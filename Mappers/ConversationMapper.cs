@@ -1,18 +1,25 @@
 using Chat_API.DTOs.Responses.Conversations;
 using Chat_API.Models;
+using Chat_API.Models.Enums;
 
 namespace Chat_API.Mappers;
 
 public static class ConversationMapper
 {
-    public static ConversationResponse ToResponse(this IndividualConversation conversation, User friend)
+    public static ConversationResponse ToResponse(this IndividualConversation conversation)
     {
         return new ConversationResponse
         {
             ConversationId = conversation.Id,
-            Type = "individual",
-            Friend = friend.ToResponse()
+            Type = ConversationType.Individual.ToString(),
+            LastActivityAt = conversation.LastActivityAt!.Value
         };
+    }
+    public static ConversationResponse ToResponse(this IndividualConversation conversation, User friend)
+    {
+        var response = conversation.ToResponse();
+        response.Friend = friend.ToResponse();
+        return response;
     }
 
     public static IEnumerable<ConversationResponse> ToResponse(
@@ -27,9 +34,10 @@ public static class ConversationMapper
         return new ConversationResponse
         {
             ConversationId = conversation.Id,
-            Type = "group",
+            Type = ConversationType.Group.ToString(),
             Name = conversation.Name,
-            GroupPictureUrl = conversation.GroupPictureUrl
+            GroupPictureUrl = conversation.GroupPictureUrl,
+            LastActivityAt = conversation.LastActivityAt!.Value
         };
     }
 
